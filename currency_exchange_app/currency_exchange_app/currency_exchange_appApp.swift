@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ComposableArchitecture
 
 @main
 struct currency_exchange_appApp: App {
@@ -13,8 +14,11 @@ struct currency_exchange_appApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            NavigationView {
+                CurrencyExchangeView(store:
+                                        Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
+                )
+            }
         }
     }
 }
