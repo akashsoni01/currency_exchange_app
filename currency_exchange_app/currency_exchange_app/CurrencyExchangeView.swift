@@ -43,6 +43,7 @@ struct CurrencyExchangeFeature: Reducer {
     enum Action {
         case viewWillAppear
         case receiveCurrency(TaskResult<CurrencyExchange>)
+        case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
     }
     
     @Dependency(\.currencyApiClient) var currencyApiClient
@@ -60,7 +61,7 @@ struct CurrencyExchangeFeature: Reducer {
                 return .run { send in
                     do {
                         let data = try await self.dataManager.load(.currencyLocalStorageUrl)
-                        await send(.receiveCurrency(
+                        await send(.receiveCurrencyLocally(
                             TaskResult {
                                 (try JSONDecoder().decode(CurrencyExchange.self, from: data))
                             }
@@ -88,17 +89,40 @@ struct CurrencyExchangeFeature: Reducer {
                     state.items = array
                     print(".receivedPost(response): success = \(model)")
                     return .run { send in
+                        try? await self.dataManager.save(
+                            JSONEncoder().encode(model),
+                            .currencyLocalStorageUrl
+                        )
+
+                    }
+                    
+                case let .failure(error):
+                    print(error.localizedDescription)
+                    return .none
+                    
+                }
+
+            case let .receiveCurrencyLocally(response):
+                switch response {
+                case let .success(model):
+                    state.title = model.base ?? ""
+                    var array: IdentifiedArrayOf<ItemModel> = []
+                    model.rates?.forEach { (key, value) in
+                        array.append(ItemModel(title: key, rate: value))
+                    }
+                    state.items = array
+                    print(".receivedPost(response): success = \(model)")
+                    return .run { send in
                         let calendar = Calendar.current
                         
                          let startDate = Date(timeIntervalSince1970: TimeInterval(model.timestamp)) // if you want to call according to api last fetched
                         // let startDate = model.lastStoredLocally // if you want to fetch according to last saved time
 
                         let endDate = Date()
-
                         let components = calendar.dateComponents([.minute], from: startDate, to: endDate)
                         let distenceInMin = components.minute ?? 0
                         if distenceInMin > 60 {
-                            // if api not getting called from last __ minutes then call api again
+                            // if api didn't call from last __ minutes then call api again
                             await send(
                                 .receiveCurrency(
                                     TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
@@ -107,13 +131,6 @@ struct CurrencyExchangeFeature: Reducer {
                             )
 
                         }
-                        
-                        
-                        try? await self.dataManager.save(
-                            JSONEncoder().encode(model),
-                            .currencyLocalStorageUrl
-                        )
-
                     }
                     
                 case let .failure(error):
