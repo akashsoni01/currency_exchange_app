@@ -13,6 +13,7 @@ struct CurrencyExchange: Codable {
     let disclaimer: String?
     let license: String?
     let base: String?
+    let timestamp: Int
     let rates: [String: Double]?
     
 }
@@ -34,6 +35,7 @@ extension CurrencyApiClient {
                 disclaimer: "disclaimer",
                 license: "license",
                 base: "USD",
+                timestamp: 00000,
                 rates: [
                     "AED": 3.672075,
                     "AFN": 87.999996,
