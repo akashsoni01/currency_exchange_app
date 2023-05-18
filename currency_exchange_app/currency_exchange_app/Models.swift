@@ -12,11 +12,15 @@ import IdentifiedCollections
 struct CurrencyExchange: Codable, Equatable {
     let disclaimer: String?
     let license: String?
-    let base: String?
+    var base: String?
     let timestamp: Int
     var lastFetchedTime: Date? = Date()
-    let rates: IdentifiedArrayOf<ItemModel>
-    
+//    let rates: IdentifiedArrayOf<ItemModel>
+    var rates: [String: Double]?
+    var sortedKeys: [String] {
+        rates?.keys.sorted() ?? []
+    }
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.disclaimer = try container.decodeIfPresent(String.self, forKey: .disclaimer)
@@ -24,11 +28,12 @@ struct CurrencyExchange: Codable, Equatable {
         self.base = try container.decodeIfPresent(String.self, forKey: .base)
         self.timestamp = try container.decode(Int.self, forKey: .timestamp)
         self.lastFetchedTime = Date()
-        self.rates = IdentifiedArrayOf(
-            uniqueElements: (try container.decodeIfPresent([String: Double].self, forKey: .rates)?
-            .sorted { $0.key < $1.key }
-            .map { ItemModel(title: $0.key, rate: $0.value) } ?? [])
-        )
+//        self.rates = IdentifiedArrayOf(
+//            uniqueElements: (try container.decodeIfPresent([String: Double].self, forKey: .rates)?
+//            .sorted { $0.key < $1.key }
+//            .map { ItemModel(title: $0.key, rate: $0.value) } ?? [])
+//            )
+        self.rates = try container.decodeIfPresent([String: Double].self, forKey: .rates)
     }
     
     init(disclaimer: String?, license: String?, base: String?, timestamp: Int, lastFetchedTime: Date? = nil, rates: [ItemModel] = []) {
@@ -37,7 +42,8 @@ struct CurrencyExchange: Codable, Equatable {
         self.base = base
         self.timestamp = timestamp
         self.lastFetchedTime = lastFetchedTime
-        self.rates = []
+//        self.rates = []
+        self.rates = [:]
     }
 }
 

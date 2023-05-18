@@ -31,24 +31,27 @@ struct CurrencyExchangeFeature: Reducer {
         var title: String = "Choose Currency"
         @BindingState var currencyValue = 1.0
         @BindingState var currencyExchangeValue = 1.0
-        @BindingState var selectedKey: String = "USD"
-        
+//        @BindingState var selectedKey: ItemModel? = nil
+        var selectedKey: String = "USD"
         var items: IdentifiedArrayOf<ItemModel> = []
-        var model: CurrencyExchange?
+        var model: CurrencyExchange = CurrencyExchange(disclaimer: nil, license: nil, base: nil, timestamp: 0)
 
         init(
-            id: UUID? = nil
+            id: UUID? = nil,
+            model: CurrencyExchange = CurrencyExchange(disclaimer: nil, license: nil, base: nil, timestamp: 0)
         ) {
             @Dependency(\.uuid) var uuid
             self.id = id ?? uuid()
+            self.model = model
         }
 
     }
     
-    enum Action: BindableAction {
+    enum Action: BindableAction, Equatable {
         case viewWillAppear
         case receiveCurrency(TaskResult<CurrencyExchange>)
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
+        case currencyChanged(String)
         case binding(BindingAction<State>)
 
     }
@@ -91,6 +94,14 @@ struct CurrencyExchangeFeature: Reducer {
                 case let .success(model):
                     state.title = model.base ?? ""
                     state.model = model
+                    var array = [ItemModel]()
+                    model.rates?.forEach { (key, value) in
+                        let total = value*state.currencyExchangeValue
+                        array.append(ItemModel(title: key, rate: total))
+                    }
+                    array.sort{ $0.title < $1.title }
+                    state.items = IdentifiedArrayOf(uniqueElements: array)
+
                     print(".receivedPost(response): success = \(model)")
                     return .run { send in
                         try? await self.dataManager.save(
@@ -133,6 +144,45 @@ struct CurrencyExchangeFeature: Reducer {
                                 
             case .binding(_):
                 return .none
+                
+            case let .currencyChanged(newKey):
+                //                    Exchanged one (USD) = Old rate / New rate
+                //                    All other = other / new rate
+                defer {
+                    // replace old base with new
+                    state.selectedKey = newKey
+                }
+                let model = changeOldBaseWithNew(model: state.model, oldKey: state.selectedKey, newKey: newKey)
+                return .run { send in
+                    await send(
+                        .receiveCurrency(
+                            TaskResult {
+                                model
+                            }
+                        )
+                    )
+                }
+            }
+            
+            @Sendable func changeOldBaseWithNew(model: CurrencyExchange, oldKey: String, newKey: String) -> CurrencyExchange {
+                var model = model
+                if let oldRate = model.rates?[oldKey],
+                   let newRate = model.rates?[newKey] {
+                    model.rates?[oldKey] = oldRate / newRate
+                    model.rates?[newKey] = 1
+
+                    for key in model.sortedKeys {
+                           if let other = model.rates?[key] {
+                            if key == newKey || key == oldKey {
+                                // do nothing
+                            } else {
+                                model.rates?[key] = other / newRate
+                            }
+                        }
+                    }
+                }
+
+                return model
             }
         }
     }
@@ -149,12 +199,12 @@ struct CurrencyExchangeView: View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             VStack {
                 HStack{
-                    TextField("Enter a value", value: viewStore.binding(\.$currencyValue), format: .number)
+                    TextField("Enter a value", value: viewStore.binding(\.$currencyExchangeValue), format: .number)
                         .textFieldStyle(.roundedBorder)
                         .keyboardType(.decimalPad)
                         .padding()
 
-//                    CurrencyPickerView(selectedKey: viewStore.binding(\.$selectedKey), keyValues: viewStore.state.model?.rates ?? [:])
+                    CurrencyPickerView(selectedKey: viewStore.binding(get: \.selectedKey, send: CurrencyExchangeFeature.Action.currencyChanged), keyValues: viewStore.model.rates ?? [:])
                 }
                 List {
                     ScrollView {
@@ -163,17 +213,12 @@ struct CurrencyExchangeView: View {
                         ], spacing: 16) {
                             ForEach(viewStore.items, id: \.id) { item in
                                 HStack {
-                                    Text(String(format: "\(item.title) %.2f", item.rate))
+                                    Text(String(format: "\(item.title) %.4f", item.rate))
                                         .frame(width: 80)
                                         .frame(height: 80)
                                         .background(Color.blue)
                                         .foregroundColor(.white)
                                         .cornerRadius(8)
-//                                    Text()
-//                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                                        .background(Color.blue)
-//                                        .foregroundColor(.white)
-//                                        .cornerRadius(8)
                                 }
                             }
                         }

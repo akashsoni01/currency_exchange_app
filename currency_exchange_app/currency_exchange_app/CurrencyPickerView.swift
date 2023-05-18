@@ -7,14 +7,39 @@
 
 import SwiftUI
 
+/*
+ struct CurrencyPickerView: View {
+     @Binding var selectedKey: ItemModel?
+     var keyValues: [ItemModel]
+     var sortedKeys: [String] {
+         keyValues.map { model in
+             model.title
+         }
+     }
+
+     var body: some View {
+         Picker("Select Key", selection: $selectedKey) {
+             ForEach(keyValues, id: \.self) { key in
+                 Text(key.title)
+             }
+         }
+     }
+ }
+ */
+/*
+ */
 struct CurrencyPickerView: View {
-    @Binding var selectedKey: ItemModel
-    var keyValues: [ItemModel]
+    @Binding var selectedKey: String
+    var keyValues: [String: Double]
+
+    var sortedKeys: [String] {
+        keyValues.keys.sorted()
+    }
 
     var body: some View {
         Picker("Select Key", selection: $selectedKey) {
-            ForEach(keyValues, id: \.id) { key in
-                Text(key.title)
+            ForEach(sortedKeys, id: \.self) { key in
+                Text(key)
             }
         }
     }
