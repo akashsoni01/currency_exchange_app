@@ -67,4 +67,5 @@ extension DataManager {
 
 extension URL {
     public static let currencyLocalStorageUrl = Self.documentsDirectory.appending(component: "currencies.json")
+    public static let currencySettingsStorageUrl = Self.documentsDirectory.appending(component: "currencySettings.json")
 }

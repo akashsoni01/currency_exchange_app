@@ -91,7 +91,6 @@ struct CurrencyExchangeFeature: Reducer {
                         let calendar = Calendar.current
                         
                          let startDate = Date(timeIntervalSince1970: TimeInterval(model.timestamp)) // if you want to call according to api last fetched
-                        // let startDate = model.lastStoredLocally // if you want to fetch according to last saved time
 
                         let endDate = Date()
 
@@ -166,3 +165,13 @@ struct CurrencyExchangeView_Previews: PreviewProvider {
         }
     }
 }
+
+
+//Todo
+/*
+ 1. ui populate data
+ 2. take different input
+ 3. create a list from open search currency to create it as base
+ 4. paid currency
+ 5. UTs 
+ */

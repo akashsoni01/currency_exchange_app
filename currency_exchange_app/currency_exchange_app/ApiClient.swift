@@ -18,6 +18,12 @@ struct CurrencyExchange: Codable {
     
 }
 
+struct CurrencySettings: Codable {
+    var selectedBaseCurrency: String
+    var lastFetchedApi: Date = Date()
+    var currencyValue: Double
+}
+
 
 struct CurrencyApiClient: Sendable {
     var getCurrencyExchangeRates: @Sendable (_ base: String) async throws -> CurrencyExchange
