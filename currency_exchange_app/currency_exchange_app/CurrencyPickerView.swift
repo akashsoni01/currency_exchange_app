@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct CurrencyPickerView: View {
-    @Binding var selectedKey: String
-    var keyValues: [String: Double]
+    @Binding var selectedKey: ItemModel
+    var keyValues: [ItemModel]
 
     var body: some View {
         Picker("Select Key", selection: $selectedKey) {
-            ForEach(Array(keyValues.keys), id: \.self) { key in
-                Text(key)
+            ForEach(keyValues, id: \.id) { key in
+                Text(key.title)
             }
         }
     }

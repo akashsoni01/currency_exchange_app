@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct ItemModel: Codable, Equatable, Identifiable {
+struct ItemModel: Codable, Equatable, Identifiable, Hashable {
     let id: UUID
     var title: String
     var rate: Double
@@ -29,8 +29,13 @@ struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
         let id: UUID
         var title: String = "Choose Currency"
-        var currencyValue = 1.0
+        @BindingState var currencyValue = 1.0
+        @BindingState var currencyExchangeValue = 1.0
+        @BindingState var selectedKey: String = "USD"
+        
         var items: IdentifiedArrayOf<ItemModel> = []
+        var model: CurrencyExchange?
+
         init(
             id: UUID? = nil
         ) {
@@ -40,11 +45,12 @@ struct CurrencyExchangeFeature: Reducer {
 
     }
     
-    enum Action {
+    enum Action: BindableAction {
         case viewWillAppear
         case receiveCurrency(TaskResult<CurrencyExchange>)
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
-        case changeBase(String)
+        case binding(BindingAction<State>)
+
     }
     
     @Dependency(\.currencyApiClient) var currencyApiClient
@@ -55,6 +61,7 @@ struct CurrencyExchangeFeature: Reducer {
     }
 
     var body: some ReducerOf<Self> {
+        BindingReducer()
         Reduce<State, Action> { state, action in
             switch action {
             case .viewWillAppear:
@@ -83,12 +90,7 @@ struct CurrencyExchangeFeature: Reducer {
                 switch response {
                 case let .success(model):
                     state.title = model.base ?? ""
-                    var array: IdentifiedArrayOf<ItemModel> = []
-                    model.rates?.forEach { (key, value) in
-                        let total = value*state.currencyValue
-                        array.append(ItemModel(title: key, rate: total))
-                    }
-                    state.items = array
+                    state.model = model
                     print(".receivedPost(response): success = \(model)")
                     return .run { send in
                         try? await self.dataManager.save(
@@ -128,6 +130,9 @@ struct CurrencyExchangeFeature: Reducer {
                         )
                     }
                 }
+                                
+            case .binding(_):
+                return .none
             }
         }
     }
@@ -139,21 +144,42 @@ struct CurrencyExchangeView: View {
     init(store: StoreOf<CurrencyExchangeFeature>) {
         self.store = store
     }
-    
-    struct ViewState: Equatable {
-        let title: String
-        var items: IdentifiedArrayOf<ItemModel>
-
-        init(state: CurrencyExchangeFeature.State) {
-            self.title = state.title
-            self.items = state.items
-        }
-    }
-    
+        
     var body: some View {
-        WithViewStore(self.store, observe: ViewState.init) { (viewStore: ViewStore<ViewState, CurrencyExchangeFeature.Action>) in
-            List {
-                Text(viewStore.title)
+        WithViewStore(self.store, observe: { $0 }) { viewStore in
+            VStack {
+                HStack{
+                    TextField("Enter a value", value: viewStore.binding(\.$currencyValue), format: .number)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.decimalPad)
+                        .padding()
+
+//                    CurrencyPickerView(selectedKey: viewStore.binding(\.$selectedKey), keyValues: viewStore.state.model?.rates ?? [:])
+                }
+                List {
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.adaptive(minimum: 80))
+                        ], spacing: 16) {
+                            ForEach(viewStore.items, id: \.id) { item in
+                                HStack {
+                                    Text(String(format: "\(item.title) %.2f", item.rate))
+                                        .frame(width: 80)
+                                        .frame(height: 80)
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+//                                    Text()
+//                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                                        .background(Color.blue)
+//                                        .foregroundColor(.white)
+//                                        .cornerRadius(8)
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                }
             }
             .onAppear{
                 viewStore.send(.viewWillAppear)
