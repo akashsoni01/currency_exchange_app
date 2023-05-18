@@ -23,13 +23,13 @@ struct ItemModel: Codable, Equatable, Identifiable {
         self.rate = rate
         
     }
-
 }
 
 struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
         let id: UUID
-        var title: String = "Hello world"
+        var title: String = "Choose Currency"
+        var currencyValue = 1.0
         var items: IdentifiedArrayOf<ItemModel> = []
         init(
             id: UUID? = nil
@@ -44,6 +44,7 @@ struct CurrencyExchangeFeature: Reducer {
         case viewWillAppear
         case receiveCurrency(TaskResult<CurrencyExchange>)
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
+        case changeBase(String)
     }
     
     @Dependency(\.currencyApiClient) var currencyApiClient
@@ -84,7 +85,8 @@ struct CurrencyExchangeFeature: Reducer {
                     state.title = model.base ?? ""
                     var array: IdentifiedArrayOf<ItemModel> = []
                     model.rates?.forEach { (key, value) in
-                        array.append(ItemModel(title: key, rate: value))
+                        let total = value*state.currencyValue
+                        array.append(ItemModel(title: key, rate: total))
                     }
                     state.items = array
                     print(".receivedPost(response): success = \(model)")
@@ -103,45 +105,32 @@ struct CurrencyExchangeFeature: Reducer {
                 }
 
             case let .receiveCurrencyLocally(response):
-                switch response {
-                case let .success(model):
-                    state.title = model.base ?? ""
-                    var array: IdentifiedArrayOf<ItemModel> = []
-                    model.rates?.forEach { (key, value) in
-                        array.append(ItemModel(title: key, rate: value))
-                    }
-                    state.items = array
-                    print(".receivedPost(response): success = \(model)")
-                    return .run { send in
-                        let calendar = Calendar.current
-                        
-                         let startDate = Date(timeIntervalSince1970: TimeInterval(model.timestamp)) // if you want to call according to api last fetched
-
-                        let endDate = Date()
-                        let components = calendar.dateComponents([.minute], from: startDate, to: endDate)
-                        let distenceInMin = components.minute ?? 0
-                        if distenceInMin > 60 {
-                            // if api didn't call from last __ minutes then call api again
-                            await send(
-                                .receiveCurrency(
-                                    TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
-                                    }
-                                )
+                print(".receivedPost(response): success = \(response)")
+                guard case let .success(model) = response, let lastFetchedTime = model.lastFetchedTime else { return .none }
+                
+                return .run { send in
+                    let calendar = Calendar.current
+                    let startDate = lastFetchedTime // if you want to call according to api last fetched
+                    let endDate = Date()
+                    let components = calendar.dateComponents([.minute], from: startDate, to: endDate)
+                    let distenceInMin = components.minute ?? 0
+                    if distenceInMin > 60 {
+                        // if api didn't call from last __ minutes then call api again
+                        await send(
+                            .receiveCurrency(
+                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                }
                             )
-
-                        }
+                        )
+                    } else {
+                        await send(
+                            .receiveCurrency(response)
+                        )
                     }
-                    
-                case let .failure(error):
-                    print(error.localizedDescription)
-                    return .none
-                    
                 }
-
             }
         }
     }
-
 }
 
 struct CurrencyExchangeView: View {
