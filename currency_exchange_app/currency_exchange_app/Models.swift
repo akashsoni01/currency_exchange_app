@@ -16,6 +16,11 @@ struct CurrencyExchange: Codable, Equatable {
     let timestamp: Int
     var lastFetchedTime: Date? = Date()
 //    let rates: IdentifiedArrayOf<ItemModel>
+    var currencyValue = 1.0
+    var currencyExchangeValue = 1.0
+    var selectedCurrency: String = "USD"
+    var oldSelectedCurrency: String = ""
+
     var rates: [String: Double]?
     var sortedKeys: [String] {
         rates?.keys.sorted() ?? []
@@ -34,6 +39,10 @@ struct CurrencyExchange: Codable, Equatable {
 //            .map { ItemModel(title: $0.key, rate: $0.value) } ?? [])
 //            )
         self.rates = try container.decodeIfPresent([String: Double].self, forKey: .rates)
+        self.currencyValue = try container.decodeIfPresent(Double.self, forKey: .currencyValue) ?? 1.0
+        self.currencyExchangeValue = try container.decodeIfPresent(Double.self, forKey: .currencyExchangeValue) ?? 1.0
+        self.selectedCurrency = try container.decodeIfPresent(String.self, forKey: .selectedCurrency) ?? ""
+        self.oldSelectedCurrency = try container.decodeIfPresent(String.self, forKey: .oldSelectedCurrency) ?? ""        
     }
     
     init(disclaimer: String?, license: String?, base: String?, timestamp: Int, lastFetchedTime: Date? = nil, rates: [ItemModel] = []) {

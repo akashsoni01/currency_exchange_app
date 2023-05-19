@@ -28,23 +28,19 @@ struct ItemModel: Codable, Equatable, Identifiable, Hashable {
 struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
         let id: UUID
-        var title: String = "Choose Currency"
-        @BindingState var currencyValue = 1.0
-        @BindingState var currencyExchangeValue = 1.0
-//        @BindingState var selectedKey: ItemModel? = nil
-        var selectedKey: String = "USD"
         var items: IdentifiedArrayOf<ItemModel> = []
-        var model: CurrencyExchange = CurrencyExchange(disclaimer: nil, license: nil, base: nil, timestamp: 0)
+//        var selectedCurrency: String
+        @BindingState var model: CurrencyExchange
 
         init(
-            id: UUID? = nil,
-            model: CurrencyExchange = CurrencyExchange(disclaimer: nil, license: nil, base: nil, timestamp: 0)
+            id: UUID? = nil
         ) {
             @Dependency(\.uuid) var uuid
+//            @Dependency(\.userDefaultsClient) var userDefaultsClient
             self.id = id ?? uuid()
-            self.model = model
+            self.model = CurrencyExchange(disclaimer: nil, license: nil, base: nil, timestamp: 0)
+//            self.selectedCurrency = userDefaultsClient.getStoredCurrency()
         }
-
     }
     
     enum Action: BindableAction, Equatable {
@@ -53,14 +49,17 @@ struct CurrencyExchangeFeature: Reducer {
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
         case currencyChanged(String)
         case binding(BindingAction<State>)
-
+        case refresh
     }
     
     @Dependency(\.currencyApiClient) var currencyApiClient
     @Dependency(\.dataManager) var dataManager
-    
+    @Dependency(\.continuousClock) var clock
+//    @Dependency(\.userDefaultsClient) var userDefaultsClient
+
     private enum CancelID {
         case api
+        case saveDebounce
     }
 
     var body: some ReducerOf<Self> {
@@ -69,7 +68,7 @@ struct CurrencyExchangeFeature: Reducer {
             switch action {
             case .viewWillAppear:
                 // call api and set data
-                return .run { send in
+                return .run { [selectedKey = state.model.selectedCurrency] send in
                     do {
                         let data = try await self.dataManager.load(.currencyLocalStorageUrl)
                         await send(.receiveCurrencyLocally(
@@ -80,36 +79,36 @@ struct CurrencyExchangeFeature: Reducer {
                     } catch {
                         await send(
                             .receiveCurrency(
-                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates(selectedKey)
                                 }
                             )
                         )
                     }
-
-
                 }.cancellable(id: CancelID.api)
 
             case let .receiveCurrency(response):
                 switch response {
                 case let .success(model):
-                    state.title = model.base ?? ""
                     state.model = model
+                    state.model.oldSelectedCurrency = state.model.selectedCurrency
+//                    userDefaultsClient.setCurrency(state.model.selectedCurrency)
                     var array = [ItemModel]()
                     model.rates?.forEach { (key, value) in
-                        let total = value*state.currencyExchangeValue
+                        let total = value * state.model.currencyValue
                         array.append(ItemModel(title: key, rate: total))
                     }
                     array.sort{ $0.title < $1.title }
                     state.items = IdentifiedArrayOf(uniqueElements: array)
-
                     print(".receivedPost(response): success = \(model)")
-                    return .run { send in
-                        try? await self.dataManager.save(
-                            JSONEncoder().encode(model),
-                            .currencyLocalStorageUrl
-                        )
-
-                    }
+                    return .none
+                    
+//                    return .run { send in
+//                        try? await self.dataManager.save(
+//                            JSONEncoder().encode(model),
+//                            .currencyLocalStorageUrl
+//                        )
+//
+//                    }
                     
                 case let .failure(error):
                     print(error.localizedDescription)
@@ -121,7 +120,7 @@ struct CurrencyExchangeFeature: Reducer {
                 print(".receivedPost(response): success = \(response)")
                 guard case let .success(model) = response, let lastFetchedTime = model.lastFetchedTime else { return .none }
                 
-                return .run { send in
+                return .run { [selectedKey = state.model.selectedCurrency] send in
                     let calendar = Calendar.current
                     let startDate = lastFetchedTime // if you want to call according to api last fetched
                     let endDate = Date()
@@ -131,7 +130,7 @@ struct CurrencyExchangeFeature: Reducer {
                         // if api didn't call from last __ minutes then call api again
                         await send(
                             .receiveCurrency(
-                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates(selectedKey)
                                 }
                             )
                         )
@@ -142,26 +141,58 @@ struct CurrencyExchangeFeature: Reducer {
                     }
                 }
                                 
+            case .binding(\.$model.currencyValue):
+                
+                return .run { [model = state.model] send in
+                    await send(
+                        .receiveCurrency(
+                            TaskResult { model }
+                        )
+                    )
+                }
+                
+            case .binding(\.$model.selectedCurrency):
+                return .run { [selectedCurrency = state.model.selectedCurrency] send in
+                    await send(.currencyChanged(selectedCurrency))
+                }
+                
+
             case .binding(_):
                 return .none
                 
             case let .currencyChanged(newKey):
-                //                    Exchanged one (USD) = Old rate / New rate
-                //                    All other = other / new rate
+                // Exchanged old = Old rate / New rate
+                // All other = other / new rate
                 defer {
                     // replace old base with new
-                    state.selectedKey = newKey
+//                    state.selectedKey = newKey
+                    state.model.base = newKey
+                    state.model.selectedCurrency = newKey
                 }
-                let model = changeOldBaseWithNew(model: state.model, oldKey: state.selectedKey, newKey: newKey)
-                return .run { send in
+                
+                if newKey == state.model.oldSelectedCurrency {
+                    return .none
+                } else {
+                    let model = changeOldBaseWithNew(model: state.model, oldKey: state.model.oldSelectedCurrency, newKey: newKey)
+                    return .run { send in
+                        await send(
+                            .receiveCurrency(
+                                TaskResult { model }
+                            )
+                        )
+                    }
+
+                }
+            case .refresh:
+                return .run { [selectedCurrency = state.model.selectedCurrency] send in
                     await send(
                         .receiveCurrency(
-                            TaskResult {
-                                model
+                            TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates(selectedCurrency)
                             }
                         )
                     )
                 }
+
             }
             
             @Sendable func changeOldBaseWithNew(model: CurrencyExchange, oldKey: String, newKey: String) -> CurrencyExchange {
@@ -185,12 +216,27 @@ struct CurrencyExchangeFeature: Reducer {
                 return model
             }
         }
+        Reduce<State, Action> { state, action in
+          return .run { [model = state.model] _ in
+            try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
+              try await self.clock.sleep(for: .seconds(1))
+                try? await self.dataManager.save(
+                    JSONEncoder().encode(model),
+                    .currencyLocalStorageUrl
+                )
+            }
+          } catch: { _, _ in
+          }
+        }
+
     }
 }
 
 struct CurrencyExchangeView: View {
     private let store: StoreOf<CurrencyExchangeFeature>
-    
+    struct ViewState: Equatable {
+        
+    }
     init(store: StoreOf<CurrencyExchangeFeature>) {
         self.store = store
     }
@@ -199,12 +245,12 @@ struct CurrencyExchangeView: View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             VStack {
                 HStack{
-                    TextField("Enter a value", value: viewStore.binding(\.$currencyExchangeValue), format: .number)
+                    TextField("Enter a value", value: viewStore.binding(\.$model.currencyValue), format: .number)
                         .textFieldStyle(.roundedBorder)
                         .keyboardType(.decimalPad)
                         .padding()
-
-                    CurrencyPickerView(selectedKey: viewStore.binding(get: \.selectedKey, send: CurrencyExchangeFeature.Action.currencyChanged), keyValues: viewStore.model.rates ?? [:])
+                    
+                    CurrencyPickerView(selectedKey: viewStore.binding(\.$model.selectedCurrency), keyValues: viewStore.model.rates ?? [:])
                 }
                 List {
                     ScrollView {
@@ -225,6 +271,11 @@ struct CurrencyExchangeView: View {
                         .padding()
                     }
                 }
+                .refreshable {
+                    // This closure is called when the user pulls to refresh
+                    viewStore.send(.refresh)
+                }
+
             }
             .onAppear{
                 viewStore.send(.viewWillAppear)
