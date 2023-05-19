@@ -29,17 +29,21 @@ struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
         let id: UUID
         var items: IdentifiedArrayOf<ItemModel> = []
-//        var selectedCurrency: String
+        var defaultCurrency: String = "USD"
         @BindingState var model: CurrencyExchange
 
         init(
             id: UUID? = nil
         ) {
             @Dependency(\.uuid) var uuid
-//            @Dependency(\.userDefaultsClient) var userDefaultsClient
             self.id = id ?? uuid()
-            self.model = CurrencyExchange(disclaimer: nil, license: nil, base: nil, timestamp: 0)
-//            self.selectedCurrency = userDefaultsClient.getStoredCurrency()
+            self.model = CurrencyExchange(
+                disclaimer: "disclaimer",
+                license: "license",
+                timestamp: 0,
+                selectedCurrency: "USD",
+                oldSelectedCurrency: "USD"
+            )
         }
     }
     
@@ -100,15 +104,17 @@ struct CurrencyExchangeFeature: Reducer {
                     array.sort{ $0.title < $1.title }
                     state.items = IdentifiedArrayOf(uniqueElements: array)
                     print(".receivedPost(response): success = \(model)")
-                    return .none
                     
-//                    return .run { send in
-//                        try? await self.dataManager.save(
-//                            JSONEncoder().encode(model),
-//                            .currencyLocalStorageUrl
-//                        )
-//
-//                    }
+                    return .run { [model = state.model] _ in
+                      try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
+                        try await self.clock.sleep(for: .seconds(1))
+                          try? await self.dataManager.save(
+                              JSONEncoder().encode(model),
+                              .currencyLocalStorageUrl
+                          )
+                      }
+                    } catch: { _, _ in
+                    }
                     
                 case let .failure(error):
                     print(error.localizedDescription)
@@ -216,19 +222,6 @@ struct CurrencyExchangeFeature: Reducer {
                 return model
             }
         }
-        Reduce<State, Action> { state, action in
-          return .run { [model = state.model] _ in
-            try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
-              try await self.clock.sleep(for: .seconds(1))
-                try? await self.dataManager.save(
-                    JSONEncoder().encode(model),
-                    .currencyLocalStorageUrl
-                )
-            }
-          } catch: { _, _ in
-          }
-        }
-
     }
 }
 
@@ -250,7 +243,24 @@ struct CurrencyExchangeView: View {
                         .keyboardType(.decimalPad)
                         .padding()
                     
-                    CurrencyPickerView(selectedKey: viewStore.binding(\.$model.selectedCurrency), keyValues: viewStore.model.rates ?? [:])
+//                    if let rates = viewStore.model.rates,
+//                       rates.count > 0,
+//                       viewStore.model.selectedCurrency.count > 0 {
+//                        Picker("Select", selection: viewStore.binding(\.$model.selectedCurrency)) {
+//                            ForEach(viewStore.items, id: \.title) { item in
+//                                Text("\(item.title)")
+//                            }
+//                        }
+//                    }
+                    
+                    if let rates = viewStore.model.rates,
+                       rates.count > 0,
+                       viewStore.model.selectedCurrency.count > 0 {
+                        CurrencyPickerView(
+                            selectedKey: viewStore.binding(\.$model.selectedCurrency),
+                            keyValues: viewStore.model.rates ?? [:]
+                        )
+                    }
                 }
                 List {
                     ScrollView {

@@ -15,11 +15,10 @@ struct CurrencyExchange: Codable, Equatable {
     var base: String?
     let timestamp: Int
     var lastFetchedTime: Date? = Date()
-//    let rates: IdentifiedArrayOf<ItemModel>
     var currencyValue = 1.0
     var currencyExchangeValue = 1.0
     var selectedCurrency: String = "USD"
-    var oldSelectedCurrency: String = ""
+    var oldSelectedCurrency: String = "USD"
 
     var rates: [String: Double]?
     var sortedKeys: [String] {
@@ -33,26 +32,25 @@ struct CurrencyExchange: Codable, Equatable {
         self.base = try container.decodeIfPresent(String.self, forKey: .base)
         self.timestamp = try container.decode(Int.self, forKey: .timestamp)
         self.lastFetchedTime = Date()
-//        self.rates = IdentifiedArrayOf(
-//            uniqueElements: (try container.decodeIfPresent([String: Double].self, forKey: .rates)?
-//            .sorted { $0.key < $1.key }
-//            .map { ItemModel(title: $0.key, rate: $0.value) } ?? [])
-//            )
         self.rates = try container.decodeIfPresent([String: Double].self, forKey: .rates)
         self.currencyValue = try container.decodeIfPresent(Double.self, forKey: .currencyValue) ?? 1.0
         self.currencyExchangeValue = try container.decodeIfPresent(Double.self, forKey: .currencyExchangeValue) ?? 1.0
-        self.selectedCurrency = try container.decodeIfPresent(String.self, forKey: .selectedCurrency) ?? ""
-        self.oldSelectedCurrency = try container.decodeIfPresent(String.self, forKey: .oldSelectedCurrency) ?? ""        
+        self.selectedCurrency = try container.decodeIfPresent(String.self, forKey: .selectedCurrency) ?? "USD" // for initial call this will return "" that can impact our picker view
+        self.oldSelectedCurrency = try container.decodeIfPresent(String.self, forKey: .oldSelectedCurrency) ?? "USD"
     }
+        
     
-    init(disclaimer: String?, license: String?, base: String?, timestamp: Int, lastFetchedTime: Date? = nil, rates: [ItemModel] = []) {
+    init(disclaimer: String?, license: String?, base: String? = nil, timestamp: Int, lastFetchedTime: Date? = nil, currencyValue: Double = 1.0, currencyExchangeValue: Double = 1.0, selectedCurrency: String, oldSelectedCurrency: String, rates: [String : Double]? = nil) {
         self.disclaimer = disclaimer
         self.license = license
         self.base = base
         self.timestamp = timestamp
         self.lastFetchedTime = lastFetchedTime
-//        self.rates = []
-        self.rates = [:]
+        self.currencyValue = currencyValue
+        self.currencyExchangeValue = currencyExchangeValue
+        self.selectedCurrency = selectedCurrency
+        self.oldSelectedCurrency = oldSelectedCurrency
+        self.rates = rates
     }
 }
 

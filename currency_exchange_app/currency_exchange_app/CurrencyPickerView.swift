@@ -26,8 +26,7 @@ import SwiftUI
      }
  }
  */
-/*
- */
+
 struct CurrencyPickerView: View {
     @Binding var selectedKey: String
     var keyValues: [String: Double]
@@ -36,8 +35,13 @@ struct CurrencyPickerView: View {
         keyValues.keys.sorted()
     }
 
+    init(selectedKey: Binding<String>, keyValues: [String : Double]) {
+        self._selectedKey = selectedKey
+        self.keyValues = keyValues
+    }
+    
     var body: some View {
-        Picker("Select Key", selection: $selectedKey) {
+        Picker("Select Currency", selection: $selectedKey) {
             ForEach(sortedKeys, id: \.self) { key in
                 Text(key)
             }

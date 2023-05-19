@@ -8,12 +8,19 @@
 import Foundation
 
 extension CurrencyExchange {
+//    static let mock = CurrencyExchange(
+//        disclaimer: "disclaimer",
+//        license: "license",
+//        base: "USD",
+//        timestamp: 00000,
+//        rates: []
+//    )
     static let mock = CurrencyExchange(
         disclaimer: "disclaimer",
         license: "license",
-        base: "USD",
-        timestamp: 00000,
-        rates: []
+        timestamp: 0,
+        selectedCurrency: "USD",
+        oldSelectedCurrency: "USD"
     )
 }
 
