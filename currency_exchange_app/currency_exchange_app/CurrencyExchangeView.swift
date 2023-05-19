@@ -95,7 +95,6 @@ struct CurrencyExchangeFeature: Reducer {
                 case let .success(model):
                     state.model = model
                     state.model.oldSelectedCurrency = state.model.selectedCurrency
-//                    userDefaultsClient.setCurrency(state.model.selectedCurrency)
                     var array = [ItemModel]()
                     model.rates?.forEach { (key, value) in
                         let total = value * state.model.currencyValue
@@ -167,11 +166,7 @@ struct CurrencyExchangeFeature: Reducer {
                 return .none
                 
             case let .currencyChanged(newKey):
-                // Exchanged old = Old rate / New rate
-                // All other = other / new rate
                 defer {
-                    // replace old base with new
-//                    state.selectedKey = newKey
                     state.model.base = newKey
                     state.model.selectedCurrency = newKey
                 }
@@ -243,16 +238,6 @@ struct CurrencyExchangeView: View {
                         .keyboardType(.decimalPad)
                         .padding()
                     
-//                    if let rates = viewStore.model.rates,
-//                       rates.count > 0,
-//                       viewStore.model.selectedCurrency.count > 0 {
-//                        Picker("Select", selection: viewStore.binding(\.$model.selectedCurrency)) {
-//                            ForEach(viewStore.items, id: \.title) { item in
-//                                Text("\(item.title)")
-//                            }
-//                        }
-//                    }
-                    
                     if let rates = viewStore.model.rates,
                        rates.count > 0,
                        viewStore.model.selectedCurrency.count > 0 {
@@ -266,18 +251,15 @@ struct CurrencyExchangeView: View {
                     ScrollView {
                         LazyVGrid(columns: [
                             GridItem(.adaptive(minimum: 120)),
-//                            GridItem(.adaptive(minimum: .infinity))
                         ], spacing: 20) {
                             ForEach(viewStore.items, id: \.id) { item in
                                 ItemView(item: item)
-//                                    .frame(minWidth: 80)
                                     .frame(minHeight: 50)
                             }
                         }
                     }
                 }
                 .refreshable {
-                    // This closure is called when the user pulls to refresh
                     viewStore.send(.refresh)
                 }
 
@@ -288,23 +270,3 @@ struct CurrencyExchangeView: View {
         }
     }
 }
-
-//struct CurrencyExchangeView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        NavigationView {
-//            CurrencyExchangeView(store:
-//                                    Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
-//            )
-//        }
-//    }
-//}
-
-
-//Todo
-/*
- 1. ui populate data
- 2. take different input
- 3. create a list from open search currency to create it as base
- 4. paid currency
- 5. UTs 
- */

@@ -33,12 +33,6 @@ struct ItemView: View {
                 }
             )
             .shadow(color: .gray, radius: 4, x: 0, y: 2)
-//            .scaleEffect(isAnimating ? 1.2 : 1.0)
-//            .animation(Animation.easeInOut(duration: 1.0).repeatForever(), value: isAnimating)
-//            .onAppear {
-//                isAnimating = true
-//            }
-
     }
 }
 
