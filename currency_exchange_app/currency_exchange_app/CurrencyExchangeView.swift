@@ -13,7 +13,6 @@ struct CurrencyExchangeFeature: Reducer {
         let id: UUID
         var items: IdentifiedArrayOf<ItemModel> = []
         @BindingState var model: CurrencyExchange
-        var currencyValue = "1.0"
 
         init(
             id: UUID? = nil
@@ -35,7 +34,6 @@ struct CurrencyExchangeFeature: Reducer {
         case receiveCurrency(TaskResult<CurrencyExchange>)
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
         case currencyBaseChanged(String)
-        case currnecyValueChanged(String)
         case binding(BindingAction<State>)
         case refresh
     }
@@ -149,17 +147,6 @@ struct CurrencyExchangeFeature: Reducer {
             case .binding(_):
                 return .none
                 
-            case let .currnecyValueChanged(value):
-                // formatt
-                // update model
-                
-                return .run { [model = state.model] send in
-                    await send(
-                        .receiveCurrency(
-                            TaskResult { model }
-                        )
-                    )
-                }
                 
             case let .currencyBaseChanged(newKey):
                 defer {
