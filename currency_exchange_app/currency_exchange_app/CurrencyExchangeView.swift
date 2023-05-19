@@ -8,29 +8,12 @@
 import ComposableArchitecture
 import SwiftUI
 
-struct ItemModel: Codable, Equatable, Identifiable, Hashable {
-    let id: UUID
-    var title: String
-    var rate: Double
-    init(
-        id: UUID? = nil,
-        title: String,
-        rate: Double
-    ) {
-        @Dependency(\.uuid) var uuid
-        self.id = id ?? uuid()
-        self.title = title
-        self.rate = rate
-        
-    }
-}
-
 struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
         let id: UUID
         var items: IdentifiedArrayOf<ItemModel> = []
-        var defaultCurrency: String = "USD"
         @BindingState var model: CurrencyExchange
+        var currencyValue = "1.0"
 
         init(
             id: UUID? = nil
@@ -51,7 +34,8 @@ struct CurrencyExchangeFeature: Reducer {
         case viewWillAppear
         case receiveCurrency(TaskResult<CurrencyExchange>)
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
-        case currencyChanged(String)
+        case currencyBaseChanged(String)
+        case currnecyValueChanged(String)
         case binding(BindingAction<State>)
         case refresh
     }
@@ -158,14 +142,26 @@ struct CurrencyExchangeFeature: Reducer {
                 
             case .binding(\.$model.selectedCurrency):
                 return .run { [selectedCurrency = state.model.selectedCurrency] send in
-                    await send(.currencyChanged(selectedCurrency))
+                    await send(.currencyBaseChanged(selectedCurrency))
                 }
                 
 
             case .binding(_):
                 return .none
                 
-            case let .currencyChanged(newKey):
+            case let .currnecyValueChanged(value):
+                // formatt
+                // update model
+                
+                return .run { [model = state.model] send in
+                    await send(
+                        .receiveCurrency(
+                            TaskResult { model }
+                        )
+                    )
+                }
+                
+            case let .currencyBaseChanged(newKey):
                 defer {
                     state.model.base = newKey
                     state.model.selectedCurrency = newKey
@@ -232,22 +228,21 @@ struct CurrencyExchangeView: View {
     var body: some View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             VStack {
-                HStack{
-                    TextField("Enter a value", value: viewStore.binding(\.$model.currencyValue), format: .number)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.decimalPad)
-                        .padding()
-                    
-                    if let rates = viewStore.model.rates,
-                       rates.count > 0,
-                       viewStore.model.selectedCurrency.count > 0 {
-                        CurrencyPickerView(
-                            selectedKey: viewStore.binding(\.$model.selectedCurrency),
-                            keyValues: viewStore.model.rates ?? [:]
-                        )
-                    }
-                }
+                
                 List {
+                        TextField("Enter a value", value: viewStore.binding(\.$model.currencyValue), format: .number)
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+
+                        if let rates = viewStore.model.rates,
+                           rates.count > 0,
+                           viewStore.model.selectedCurrency.count > 0 {
+                            CurrencyPickerView(
+                                selectedKey: viewStore.binding(\.$model.selectedCurrency),
+                                keyValues: viewStore.model.rates ?? [:]
+                            )
+                        }
                     ScrollView {
                         LazyVGrid(columns: [
                             GridItem(.adaptive(minimum: 120)),

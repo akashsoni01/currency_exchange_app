@@ -6,7 +6,25 @@
 //
 
 import Foundation
+import Dependencies
 import IdentifiedCollections
+
+struct ItemModel: Codable, Equatable, Identifiable, Hashable {
+    let id: UUID
+    var title: String
+    var rate: Double
+    init(
+        id: UUID? = nil,
+        title: String,
+        rate: Double
+    ) {
+        @Dependency(\.uuid) var uuid
+        self.id = id ?? uuid()
+        self.title = title
+        self.rate = rate
+        
+    }
+}
 
 // Sort the rates by currency code
 struct CurrencyExchange: Codable, Equatable {
