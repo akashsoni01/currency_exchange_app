@@ -10,7 +10,6 @@ import ComposableArchitecture
 
 @main
 struct currency_exchange_appApp: App {
-    let persistenceController = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
@@ -19,6 +18,8 @@ struct currency_exchange_appApp: App {
                                         Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
                 )
             }
+//            ItemView(item: ItemModel(title: "USD", rate: 1.5))
+
         }
     }
 }

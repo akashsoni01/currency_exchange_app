@@ -8,10 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		FF31C92A2A15618000AE14DF /* currency_exchange_appApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9292A15618000AE14DF /* currency_exchange_appApp.swift */; };
-		FF31C92C2A15618000AE14DF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C92B2A15618000AE14DF /* ContentView.swift */; };
 		FF31C92E2A15618200AE14DF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF31C92D2A15618200AE14DF /* Assets.xcassets */; };
 		FF31C9312A15618200AE14DF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF31C9302A15618200AE14DF /* Preview Assets.xcassets */; };
-		FF31C9332A15618200AE14DF /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9322A15618200AE14DF /* Persistence.swift */; };
 		FF31C9362A15618200AE14DF /* currency_exchange_app.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9342A15618200AE14DF /* currency_exchange_app.xcdatamodeld */; };
 		FF31C9402A15618200AE14DF /* currency_exchange_appTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C93F2A15618200AE14DF /* currency_exchange_appTests.swift */; };
 		FF31C94A2A15618200AE14DF /* currency_exchange_appUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9492A15618200AE14DF /* currency_exchange_appUITests.swift */; };
@@ -23,6 +21,7 @@
 		FF31C9632A16605600AE14DF /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9622A16605600AE14DF /* Models.swift */; };
 		FF31C9652A1661CA00AE14DF /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9642A1661CA00AE14DF /* MockData.swift */; };
 		FF31C9672A16680100AE14DF /* CurrencyPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */; };
+		FF31C9752A181AFD00AE14DF /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9742A181AFD00AE14DF /* ItemView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,10 +44,8 @@
 /* Begin PBXFileReference section */
 		FF31C9262A15618000AE14DF /* currency_exchange_app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = currency_exchange_app.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF31C9292A15618000AE14DF /* currency_exchange_appApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = currency_exchange_appApp.swift; sourceTree = "<group>"; };
-		FF31C92B2A15618000AE14DF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		FF31C92D2A15618200AE14DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FF31C9302A15618200AE14DF /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		FF31C9322A15618200AE14DF /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		FF31C9352A15618200AE14DF /* currency_exchange_app.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = currency_exchange_app.xcdatamodel; sourceTree = "<group>"; };
 		FF31C93B2A15618200AE14DF /* currency_exchange_appTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = currency_exchange_appTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF31C93F2A15618200AE14DF /* currency_exchange_appTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = currency_exchange_appTests.swift; sourceTree = "<group>"; };
@@ -61,6 +58,7 @@
 		FF31C9622A16605600AE14DF /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		FF31C9642A1661CA00AE14DF /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyPickerView.swift; sourceTree = "<group>"; };
+		FF31C9742A181AFD00AE14DF /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +120,7 @@
 				FF31C9622A16605600AE14DF /* Models.swift */,
 				FF31C9642A1661CA00AE14DF /* MockData.swift */,
 				FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */,
+				FF31C9742A181AFD00AE14DF /* ItemView.swift */,
 			);
 			path = currency_exchange_app;
 			sourceTree = "<group>";
@@ -155,8 +154,6 @@
 			isa = PBXGroup;
 			children = (
 				FF31C9342A15618200AE14DF /* currency_exchange_app.xcdatamodeld */,
-				FF31C9322A15618200AE14DF /* Persistence.swift */,
-				FF31C92B2A15618000AE14DF /* ContentView.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -297,12 +294,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF31C9332A15618200AE14DF /* Persistence.swift in Sources */,
-				FF31C92C2A15618000AE14DF /* ContentView.swift in Sources */,
 				FF31C95D2A15637E00AE14DF /* CurrencyExchangeView.swift in Sources */,
 				FF31C9632A16605600AE14DF /* Models.swift in Sources */,
 				FF31C9652A1661CA00AE14DF /* MockData.swift in Sources */,
 				FF31C9612A156EC300AE14DF /* DataManager.swift in Sources */,
+				FF31C9752A181AFD00AE14DF /* ItemView.swift in Sources */,
 				FF31C92A2A15618000AE14DF /* currency_exchange_appApp.swift in Sources */,
 				FF31C9362A15618200AE14DF /* currency_exchange_app.xcdatamodeld in Sources */,
 				FF31C95F2A15682300AE14DF /* ApiClient.swift in Sources */,
@@ -468,6 +464,7 @@
 				DEVELOPMENT_TEAM = 5M3S3E76ML;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Currency Converter";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -497,6 +494,7 @@
 				DEVELOPMENT_TEAM = 5M3S3E76ML;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Currency Converter";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

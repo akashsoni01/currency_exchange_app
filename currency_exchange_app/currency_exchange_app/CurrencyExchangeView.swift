@@ -265,20 +265,15 @@ struct CurrencyExchangeView: View {
                 List {
                     ScrollView {
                         LazyVGrid(columns: [
-                            GridItem(.adaptive(minimum: 80))
-                        ], spacing: 16) {
+                            GridItem(.adaptive(minimum: 120)),
+//                            GridItem(.adaptive(minimum: .infinity))
+                        ], spacing: 20) {
                             ForEach(viewStore.items, id: \.id) { item in
-                                HStack {
-                                    Text(String(format: "\(item.title) %.4f", item.rate))
-                                        .frame(width: 80)
-                                        .frame(height: 80)
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                }
+                                ItemView(item: item)
+//                                    .frame(minWidth: 80)
+                                    .frame(minHeight: 50)
                             }
                         }
-                        .padding()
                     }
                 }
                 .refreshable {
@@ -294,15 +289,15 @@ struct CurrencyExchangeView: View {
     }
 }
 
-struct CurrencyExchangeView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            CurrencyExchangeView(store:
-                                    Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
-            )
-        }
-    }
-}
+//struct CurrencyExchangeView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        NavigationView {
+//            CurrencyExchangeView(store:
+//                                    Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
+//            )
+//        }
+//    }
+//}
 
 
 //Todo
