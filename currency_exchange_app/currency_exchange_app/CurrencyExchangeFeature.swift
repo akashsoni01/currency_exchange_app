@@ -28,7 +28,7 @@ struct CurrencyExchangeFeature: Reducer {
     enum Action: BindableAction, Equatable {
         case task
         case receiveCurrency(TaskResult<CurrencyExchange>)
-        case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
+        case fetchCurrencies
         case currencyBaseChanged(String)
         case binding(BindingAction<State>)
         case refresh
@@ -50,21 +50,10 @@ struct CurrencyExchangeFeature: Reducer {
         Reduce<State, Action> { state, action in
             switch action {
             case .task:
-                return .run { [model = state.model] send in
-                    if model.lastFetchedTime == nil {
-                        await send(
-                            .receiveCurrency(
-                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
-                                }
-                            )
-                        )
-                    } else {
-                        await send(.receiveCurrencyLocally(
-                            TaskResult { model }
-                        ))
-                    }
-                }.cancellable(id: CancelID.api)
-
+                return .run { send in
+                    await send(.fetchCurrencies)
+                }
+                
             case let .receiveCurrency(response):
                 switch response {
                 case let .success(model):
@@ -96,29 +85,42 @@ struct CurrencyExchangeFeature: Reducer {
                     
                 }
 
-            case let .receiveCurrencyLocally(response):
-                guard case let .success(model) = response, let lastFetchedTime = model.lastFetchedTime else { return .none }
-                
-                return .run { [selectedKey = state.model.selectedCurrency] send in
-                    let startDate = lastFetchedTime // if you want to call according to api last fetched
-                    let endDate = self.now
-                    let components = self.calendar.dateComponents([.minute], from: startDate, to: endDate)
-                    let distenceInMin = components.minute ?? 0
-                    if distenceInMin > 60 {
-                        // if api didn't call from last __ minutes then call api again
-                        await send(
-                            .receiveCurrency(
-                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates(selectedKey)
-                                }
-                            )
-                        )
+            case .fetchCurrencies:
+                let selectedCurrency = state.model.selectedCurrency
+                if let lastFetchedTime = state.model.lastFetchedTime {
+                        let startDate = lastFetchedTime // if you want to call according to api last fetched
+                        let endDate = self.now
+                        let components = self.calendar.dateComponents([.minute], from: startDate, to: endDate)
+                        let distenceInMin = components.minute ?? 0
+                        if distenceInMin <= 60 {
+                            return .run { [model = state.model] send in
+                                await send(.receiveCurrency(
+                                    TaskResult { model }
+                                ))
+                            }
+                        } else {
+                            // if api didn't call from last __ minutes then call api again
+                            state.model.selectedCurrency = "USD"
+                            return .run { send in
+                                await send(
+                                    .receiveCurrency(
+                                        TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                        }
+                                    )
+                                )
+                            }
+                        }
                     } else {
-                        await send(
-                            .receiveCurrency(response)
-                        )
+                        state.model.selectedCurrency = "USD"
+                        return .run { send in
+                            await send(
+                                .receiveCurrency(
+                                    TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                    }
+                                )
+                            )
+                        }
                     }
-                }
-                                
             case .binding(\.$model.currencyValue):
                 return .run { [model = state.model] send in
                     await send(
