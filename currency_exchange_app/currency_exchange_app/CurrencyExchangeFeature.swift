@@ -37,6 +37,7 @@ struct CurrencyExchangeFeature: Reducer {
     @Dependency(\.continuousClock) var clock
     @Dependency(\.currencyApiClient) var currencyApiClient
     @Dependency(\.dataManager.save) var saveData
+    @Dependency(\.date.now) var now
 
     private enum CancelID {
         case api
@@ -67,7 +68,7 @@ struct CurrencyExchangeFeature: Reducer {
                 switch response {
                 case let .success(model):
                     state.model = model
-                    state.model.lastFetchedTime = Date()
+                    state.model.lastFetchedTime = self.now
                     state.model.oldSelectedCurrency = state.model.selectedCurrency
                     var array = [ItemModel]()
                     model.rates?.forEach { (key, value) in
@@ -100,7 +101,7 @@ struct CurrencyExchangeFeature: Reducer {
                 return .run { [selectedKey = state.model.selectedCurrency] send in
                     let calendar = Calendar.current
                     let startDate = lastFetchedTime // if you want to call according to api last fetched
-                    let endDate = Date()
+                    let endDate = self.now
                     let components = calendar.dateComponents([.minute], from: startDate, to: endDate)
                     let distenceInMin = components.minute ?? 0
                     if distenceInMin > 60 {

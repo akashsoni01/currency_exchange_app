@@ -71,37 +71,8 @@ final class currency_exchange_appTests: XCTestCase {
  }
  */
     
-//    func test_receiveCurrency_success() async throws {
-//        let currencyExchange = CurrencyExchange.mock
-//        let testStore = TestStore(
-//            initialState: CurrencyExchangeFeature.State(
-//                model: currencyExchange)
-//        ) {
-//            CurrencyExchangeFeature()
-//        } withDependencies: {
-//            $0.continuousClock = ImmediateClock()
-//            $0.currencyApiClient.getCurrencyExchangeRates = { _ in
-//                currencyExchange
-//            }
-//            $0.dataManager = .mock(
-//                initialData: try! JSONEncoder().encode(currencyExchange)
-//            )
-//        }
-//        store.exhaustivity = .off(showSkippedAssertions: true)
-//        
-//        let savedData = LockIsolated(Data?.none)
-//        testStore.dependencies.dataManager.save = { data, _ in savedData.setValue(data) }
-//
-//        await testStore.send(.receiveCurrency(.success(currencyExchange))) {
-//            $0.model = currencyExchange
-//        }
-//        await testStore.receive(., timeout: <#T##Duration#>)
-//    }
-    
-    func test_receiveCurrency_fail() async throws {
+    func test_receiveCurrency_success() async throws {
         let currencyExchange = CurrencyExchange.mock
-        struct RefreshFailure: Error {}
-        let failure = RefreshFailure()
         let testClock = TestClock()
         let testStore = TestStore(
             initialState: CurrencyExchangeFeature.State(
@@ -110,19 +81,51 @@ final class currency_exchange_appTests: XCTestCase {
             CurrencyExchangeFeature()
         } withDependencies: {
             $0.uuid = .incrementing
+            $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
             $0.continuousClock = testClock
+            $0.currencyApiClient = .default()
+            $0.currencyApiClient.getCurrencyExchangeRates = { _ in currencyExchange }
+            $0.dataManager = .mock(
+                initialData: try! JSONEncoder().encode(currencyExchange)
+              )
+
+        }
+        
+        await testStore.send(
+            .receiveCurrency(
+            .success(currencyExchange)
+            )
+        ) {
+            $0.model = currencyExchange
+            $0.model.lastFetchedTime = Date(timeIntervalSince1970: 1_234_567_890)
+            $0.items = mockIdntifiedArray()
+        }
+        await testClock.advance(by: .seconds(1))
+
+    }
+    
+    func test_receiveCurrency_fail() async throws {
+        let currencyExchange = CurrencyExchange.mock
+        struct RefreshFailure: Error {}
+        let failure = RefreshFailure()
+        let testStore = TestStore(
+            initialState: CurrencyExchangeFeature.State(
+                model: currencyExchange)
+        ) {
+            CurrencyExchangeFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
+            $0.continuousClock = ImmediateClock()
             $0.currencyApiClient = .default()
             $0.currencyApiClient.getCurrencyExchangeRates = { string in throw failure }
             $0.dataManager = .mock(
-                initialData: Data("!@#$ BAD DATA %^&*()".utf8)
+                initialData: try! JSONEncoder().encode(currencyExchange)
               )
-
         }
         await testStore.send(.receiveCurrency(.failure(failure)))
     }
 
 }
-
 
 
 
