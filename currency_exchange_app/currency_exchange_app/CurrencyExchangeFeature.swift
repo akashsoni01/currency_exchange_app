@@ -36,7 +36,7 @@ struct CurrencyExchangeFeature: Reducer {
     
     @Dependency(\.continuousClock) var clock
     @Dependency(\.currencyApiClient) var currencyApiClient
-    @Dependency(\.dataManager) var dataManager
+    @Dependency(\.dataManager.save) var saveData
 
     private enum CancelID {
         case api
@@ -60,7 +60,6 @@ struct CurrencyExchangeFeature: Reducer {
                         await send(.receiveCurrencyLocally(
                             TaskResult { model }
                         ))
-
                     }
                 }.cancellable(id: CancelID.api)
 
@@ -81,16 +80,16 @@ struct CurrencyExchangeFeature: Reducer {
                     return .run { [model = state.model] _ in
                       try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
                         try await self.clock.sleep(for: .seconds(1))
-                          try? await self.dataManager.save(
+                          try? await self.saveData(
                               JSONEncoder().encode(model),
                               .currencyLocalStorageUrl
                           )
                       }
                     } catch: { _, _ in
                     }
-                    
-                case let .failure(error):
-                    print(error.localizedDescription)
+
+                case .failure:
+                    print("Something went wrong")
                     return .none
                     
                 }

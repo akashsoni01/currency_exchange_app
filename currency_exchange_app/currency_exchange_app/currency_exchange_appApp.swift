@@ -13,13 +13,14 @@ struct currency_exchange_appApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                CurrencyExchangeView(store:
-                                        Store(initialState: CurrencyExchangeFeature.State(model: CurrencyExchange(selectedCurrency: "USD")), reducer: CurrencyExchangeFeature())
-                )
+            if !_XCTIsTesting {
+                NavigationView {
+                    CurrencyExchangeView(store:
+                                            Store(initialState: CurrencyExchangeFeature.State(model: CurrencyExchange(selectedCurrency: "USD")), reducer: CurrencyExchangeFeature())
+                    )
+                }
+    //            ItemView(item: ItemModel(title: "USD", rate: 1.5))
             }
-//            ItemView(item: ItemModel(title: "USD", rate: 1.5))
-
         }
     }
 }
