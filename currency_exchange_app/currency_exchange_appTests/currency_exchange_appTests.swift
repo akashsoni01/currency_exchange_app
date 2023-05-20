@@ -88,7 +88,6 @@ final class currency_exchange_appTests: XCTestCase {
             $0.dataManager = .mock(
                 initialData: try! JSONEncoder().encode(currencyExchange)
               )
-
         }
         
         await testStore.send(
