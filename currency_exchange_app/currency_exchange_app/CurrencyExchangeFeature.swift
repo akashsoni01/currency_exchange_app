@@ -86,7 +86,7 @@ struct CurrencyExchangeFeature: Reducer {
                 }
 
             case .fetchCurrencies:
-                let selectedCurrency = state.model.selectedCurrency
+//                let selectedCurrency = state.model.selectedCurrency
                 if let lastFetchedTime = state.model.lastFetchedTime {
                         let startDate = lastFetchedTime // if you want to call according to api last fetched
                         let endDate = self.now

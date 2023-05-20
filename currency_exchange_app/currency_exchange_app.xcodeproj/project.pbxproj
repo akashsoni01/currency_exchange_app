@@ -49,6 +49,7 @@
 		FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyPickerView.swift; sourceTree = "<group>"; };
 		FF31C9742A181AFD00AE14DF /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
 		FF31C9762A182B1E00AE14DF /* CurrencyExchangeFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyExchangeFeature.swift; sourceTree = "<group>"; };
+		FFF5F2A92A1971B00075D274 /* currency_exchange_appTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = currency_exchange_appTests.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +74,7 @@
 		FF31C91D2A15618000AE14DF = {
 			isa = PBXGroup;
 			children = (
+				FFF5F2A92A1971B00075D274 /* currency_exchange_appTests.xctestplan */,
 				FF31C9282A15618000AE14DF /* currency_exchange_app */,
 				FF31C93E2A15618200AE14DF /* currency_exchange_appTests */,
 				FF31C9272A15618000AE14DF /* Products */,
