@@ -46,11 +46,9 @@ struct CurrencyExchangeView: View {
                 .refreshable {
                     viewStore.send(.refresh)
                 }
+            }
+            .task { await viewStore.send(.task).finish() }
 
-            }
-            .onAppear{
-                viewStore.send(.viewWillAppear)
-            }
         }
     }
 }

@@ -35,26 +35,114 @@ final class currency_exchange_appTests: XCTestCase {
         }
     }
     
-    func test_viewWillAppear() async throws {
-        let currencyExchange = CurrencyExchange.mock
-        let testStore = TestStore(
-            initialState: CurrencyExchangeFeature.State(
-                model: currencyExchange)
-        ) {
-            CurrencyExchangeFeature()
-        } withDependencies: {
-            $0.continuousClock = ImmediateClock()
-            $0.currencyApiClient = .default()
-            $0.dataManager = .mock(
-                initialData: try! JSONEncoder().encode(currencyExchange)
-            )
-            
-        }
-        
-        await testStore.send(.viewWillAppear)
-        await testStore.receive(.receiveCurrencyLocally(.success(currencyExchange)), timeout: 5)
-        
-        
-    }
+/*
+ func test_test_viewWillAppear_loadDataFailed() async throws {
+     let currencyExchange = CurrencyExchange.mock
+     let testStore = TestStore(
+         initialState: CurrencyExchangeFeature.State(
+             model: currencyExchange)
+     ) {
+         CurrencyExchangeFeature()
+     } withDependencies: {
+         $0.continuousClock = ImmediateClock()
+         $0.currencyApiClient = .default()
+         $0.dataManager = .mock(
+             initialData: Data("!@#$ BAD DATA %^&*()".utf8)
+           )
+     }
+ }
+ 
+ func test_test_viewWillAppear_dataNotFound() async throws {
+     let currencyExchange = CurrencyExchange.mock
+     let testStore = TestStore(
+         initialState: CurrencyExchangeFeature.State(
+             model: currencyExchange)
+     ) {
+         CurrencyExchangeFeature()
+     } withDependencies: {
+         $0.continuousClock = ImmediateClock()
+         $0.currencyApiClient = .default()
+         $0.dataManager.load = { _ in
+             struct FileNotFound: Error {}
+             throw FileNotFound()
+           }
+     }
+ }
+ 
+ func test_viewWillAppear() async throws {
+     let currencyExchange = CurrencyExchange.mock
+     let testStore = TestStore(
+         initialState: CurrencyExchangeFeature.State(
+             model: currencyExchange)
+     ) {
+         CurrencyExchangeFeature()
+     } withDependencies: {
+         $0.continuousClock = ImmediateClock()
+         $0.currencyApiClient = .default()
+         $0.dataManager = .mock(
+             initialData: try! JSONEncoder().encode(currencyExchange)
+         )
+
+     }
+     let savedData = LockIsolated(Data?.none)
+     testStore.dependencies.dataManager.save = { data, _ in savedData.setValue(data) }
+
+     await testStore.send(.viewWillAppear)
+     await testStore.receive(.receiveCurrencyLocally(.success(currencyExchange)), timeout: 5)
+
+
+ }
+ */
+    
+//    func test_receiveCurrency_success() async throws {
+//        let currencyExchange = CurrencyExchange.mock
+//        let testStore = TestStore(
+//            initialState: CurrencyExchangeFeature.State(
+//                model: currencyExchange)
+//        ) {
+//            CurrencyExchangeFeature()
+//        } withDependencies: {
+//            $0.continuousClock = ImmediateClock()
+//            $0.currencyApiClient.getCurrencyExchangeRates = { _ in
+//                currencyExchange
+//            }
+//            $0.dataManager = .mock(
+//                initialData: try! JSONEncoder().encode(currencyExchange)
+//            )
+//        }
+//        store.exhaustivity = .off(showSkippedAssertions: true)
+//        
+//        let savedData = LockIsolated(Data?.none)
+//        testStore.dependencies.dataManager.save = { data, _ in savedData.setValue(data) }
+//
+//        await testStore.send(.receiveCurrency(.success(currencyExchange))) {
+//            $0.model = currencyExchange
+//        }
+//        await testStore.receive(., timeout: <#T##Duration#>)
+//    }
+    
+//    func test_receiveCurrency_fail() async throws {
+//        let currencyExchange = CurrencyExchange.mock
+//        let testStore = TestStore(
+//            initialState: CurrencyExchangeFeature.State(
+//                model: currencyExchange)
+//        ) {
+//            CurrencyExchangeFeature()
+//        } withDependencies: {
+//            $0.continuousClock = ImmediateClock()
+//            $0.currencyApiClient = .default()
+//            $0.dataManager = .mock(
+//                initialData: Data("!@#$ BAD DATA %^&*()".utf8)
+//              )
+//
+//        }
+//    }
 
 }
+
+
+
+
+
+
+

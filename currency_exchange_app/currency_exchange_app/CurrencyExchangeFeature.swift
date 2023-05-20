@@ -10,22 +10,23 @@ import SwiftUI
 
 struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
-        let id: UUID
         var items: IdentifiedArrayOf<ItemModel> = []
         @BindingState var model: CurrencyExchange
 
         init(
-            id: UUID? = nil,
             model: CurrencyExchange
         ) {
-            @Dependency(\.uuid) var uuid
-            self.id = id ?? uuid()
-            self.model = model
+            do {
+                @Dependency(\.dataManager.load) var load
+                self.model = try JSONDecoder().decode(CurrencyExchange.self, from: load(.currencyLocalStorageUrl))
+            } catch {
+                self.model = model
+            }
         }
     }
     
     enum Action: BindableAction, Equatable {
-        case viewWillAppear
+        case task
         case receiveCurrency(TaskResult<CurrencyExchange>)
         case receiveCurrencyLocally(TaskResult<CurrencyExchange>)
         case currencyBaseChanged(String)
@@ -46,22 +47,20 @@ struct CurrencyExchangeFeature: Reducer {
         BindingReducer()
         Reduce<State, Action> { state, action in
             switch action {
-            case .viewWillAppear:
-                return .run { [selectedKey = state.model.selectedCurrency] send in
-                    do {
-                        let data = try await self.dataManager.load(.currencyLocalStorageUrl)
-                        await send(.receiveCurrencyLocally(
-                            TaskResult {
-                                (try JSONDecoder().decode(CurrencyExchange.self, from: data))
-                            }
-                        ))
-                    } catch {
+            case .task:
+                return .run { [model = state.model] send in
+                    if model.lastFetchedTime == nil {
                         await send(
                             .receiveCurrency(
-                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates(selectedKey)
+                                TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
                                 }
                             )
                         )
+                    } else {
+                        await send(.receiveCurrencyLocally(
+                            TaskResult { model }
+                        ))
+
                     }
                 }.cancellable(id: CancelID.api)
 
@@ -69,6 +68,7 @@ struct CurrencyExchangeFeature: Reducer {
                 switch response {
                 case let .success(model):
                     state.model = model
+                    state.model.lastFetchedTime = Date()
                     state.model.oldSelectedCurrency = state.model.selectedCurrency
                     var array = [ItemModel]()
                     model.rates?.forEach { (key, value) in
@@ -76,9 +76,8 @@ struct CurrencyExchangeFeature: Reducer {
                         array.append(ItemModel(title: key, rate: total))
                     }
                     array.sort{ $0.title < $1.title }
-                    state.items = IdentifiedArrayOf(uniqueElements: array)
-                    print(".receivedPost(response): success = \(model)")
                     
+                    state.items = IdentifiedArrayOf(uniqueElements: array)
                     return .run { [model = state.model] _ in
                       try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
                         try await self.clock.sleep(for: .seconds(1))
@@ -97,7 +96,6 @@ struct CurrencyExchangeFeature: Reducer {
                 }
 
             case let .receiveCurrencyLocally(response):
-                print(".receivedPost(response): success = \(response)")
                 guard case let .success(model) = response, let lastFetchedTime = model.lastFetchedTime else { return .none }
                 
                 return .run { [selectedKey = state.model.selectedCurrency] send in
@@ -122,7 +120,6 @@ struct CurrencyExchangeFeature: Reducer {
                 }
                                 
             case .binding(\.$model.currencyValue):
-                
                 return .run { [model = state.model] send in
                     await send(
                         .receiveCurrency(
@@ -160,6 +157,7 @@ struct CurrencyExchangeFeature: Reducer {
                     }
 
                 }
+                
             case .refresh:
                 return .run { [selectedCurrency = state.model.selectedCurrency] send in
                     await send(

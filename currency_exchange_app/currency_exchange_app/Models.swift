@@ -32,7 +32,7 @@ struct CurrencyExchange: Codable, Equatable {
     let license: String?
     var base: String?
     let timestamp: Int
-    var lastFetchedTime: Date? = Date()
+    var lastFetchedTime: Date?
     var currencyValue = 1.0
     var currencyExchangeValue = 1.0
     var selectedCurrency: String = "USD"
@@ -49,7 +49,7 @@ struct CurrencyExchange: Codable, Equatable {
         self.license = try container.decodeIfPresent(String.self, forKey: .license)
         self.base = try container.decodeIfPresent(String.self, forKey: .base)
         self.timestamp = try container.decode(Int.self, forKey: .timestamp)
-        self.lastFetchedTime = Date()
+        self.lastFetchedTime = try container.decodeIfPresent(Date.self, forKey: .lastFetchedTime)
         self.rates = try container.decodeIfPresent([String: Double].self, forKey: .rates)
         self.currencyValue = try container.decodeIfPresent(Double.self, forKey: .currencyValue) ?? 1.0
         self.currencyExchangeValue = try container.decodeIfPresent(Double.self, forKey: .currencyExchangeValue) ?? 1.0
