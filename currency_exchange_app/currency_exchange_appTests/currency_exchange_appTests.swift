@@ -6,8 +6,10 @@
 //
 
 import XCTest
+import ComposableArchitecture
 @testable import currency_exchange_app
 
+@MainActor
 final class currency_exchange_appTests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -31,6 +33,28 @@ final class currency_exchange_appTests: XCTestCase {
         self.measure {
             // Put the code you want to measure the time of here.
         }
+    }
+    
+    func test_viewWillAppear() async throws {
+        let currencyExchange = CurrencyExchange.mock
+        let testStore = TestStore(
+            initialState: CurrencyExchangeFeature.State(
+                model: currencyExchange)
+        ) {
+            CurrencyExchangeFeature()
+        } withDependencies: {
+            $0.continuousClock = ImmediateClock()
+            $0.currencyApiClient = .default()
+            $0.dataManager = .mock(
+                initialData: try! JSONEncoder().encode(currencyExchange)
+            )
+            
+        }
+        
+        await testStore.send(.viewWillAppear)
+        await testStore.receive(.receiveCurrencyLocally(.success(currencyExchange)), timeout: 5)
+        
+        
     }
 
 }

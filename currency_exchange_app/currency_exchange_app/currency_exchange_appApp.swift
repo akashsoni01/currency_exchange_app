@@ -15,7 +15,7 @@ struct currency_exchange_appApp: App {
         WindowGroup {
             NavigationView {
                 CurrencyExchangeView(store:
-                                        Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
+                                        Store(initialState: CurrencyExchangeFeature.State(model: CurrencyExchange(selectedCurrency: "USD")), reducer: CurrencyExchangeFeature())
                 )
             }
 //            ItemView(item: ItemModel(title: "USD", rate: 1.5))

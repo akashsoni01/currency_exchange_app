@@ -57,8 +57,7 @@ struct CurrencyExchange: Codable, Equatable {
         self.oldSelectedCurrency = try container.decodeIfPresent(String.self, forKey: .oldSelectedCurrency) ?? "USD"
     }
         
-    
-    init(disclaimer: String?, license: String?, base: String? = nil, timestamp: Int, lastFetchedTime: Date? = nil, currencyValue: Double = 1.0, currencyExchangeValue: Double = 1.0, selectedCurrency: String, oldSelectedCurrency: String, rates: [String : Double]? = nil) {
+    init(disclaimer: String? = nil, license: String? = nil, base: String? = nil, timestamp: Int = 0, lastFetchedTime: Date? = nil, currencyValue: Double = 1.0, currencyExchangeValue: Double = 1.0, selectedCurrency: String, oldSelectedCurrency: String = "USD", rates: [String : Double]? = nil) {
         self.disclaimer = disclaimer
         self.license = license
         self.base = base

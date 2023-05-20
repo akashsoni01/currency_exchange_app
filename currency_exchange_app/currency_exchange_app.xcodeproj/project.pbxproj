@@ -22,6 +22,7 @@
 		FF31C9652A1661CA00AE14DF /* MockData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9642A1661CA00AE14DF /* MockData.swift */; };
 		FF31C9672A16680100AE14DF /* CurrencyPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */; };
 		FF31C9752A181AFD00AE14DF /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9742A181AFD00AE14DF /* ItemView.swift */; };
+		FF31C9772A182B1E00AE14DF /* CurrencyExchangeFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF31C9762A182B1E00AE14DF /* CurrencyExchangeFeature.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 		FF31C9642A1661CA00AE14DF /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyPickerView.swift; sourceTree = "<group>"; };
 		FF31C9742A181AFD00AE14DF /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
+		FF31C9762A182B1E00AE14DF /* CurrencyExchangeFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyExchangeFeature.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +123,7 @@
 				FF31C9642A1661CA00AE14DF /* MockData.swift */,
 				FF31C9662A16680100AE14DF /* CurrencyPickerView.swift */,
 				FF31C9742A181AFD00AE14DF /* ItemView.swift */,
+				FF31C9762A182B1E00AE14DF /* CurrencyExchangeFeature.swift */,
 			);
 			path = currency_exchange_app;
 			sourceTree = "<group>";
@@ -294,6 +297,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF31C9772A182B1E00AE14DF /* CurrencyExchangeFeature.swift in Sources */,
 				FF31C95D2A15637E00AE14DF /* CurrencyExchangeView.swift in Sources */,
 				FF31C9632A16605600AE14DF /* Models.swift in Sources */,
 				FF31C9652A1661CA00AE14DF /* MockData.swift in Sources */,
