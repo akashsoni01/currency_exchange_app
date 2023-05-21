@@ -27,8 +27,8 @@ struct CurrencyExchangeFeature: Reducer {
     
     enum Action: BindableAction, Equatable {
         case task
-        case receiveCurrency(TaskResult<CurrencyExchange>)
         case fetchCurrencies
+        case receiveCurrency(TaskResult<CurrencyExchange>)
         case currencyBaseChanged(String)
         case binding(BindingAction<State>)
         case refresh
@@ -41,7 +41,6 @@ struct CurrencyExchangeFeature: Reducer {
     @Dependency(\.calendar) var calendar
 
     private enum CancelID {
-        case api
         case saveDebounce
     }
 
@@ -104,10 +103,12 @@ struct CurrencyExchangeFeature: Reducer {
                             return .run { send in
                                 await send(
                                     .receiveCurrency(
-                                        TaskResult { try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                        TaskResult {
+                                            try await self.currencyApiClient.getCurrencyExchangeRates("USD")
                                         }
                                     )
                                 )
+                                
                             }
                         }
                     } else {
@@ -121,6 +122,7 @@ struct CurrencyExchangeFeature: Reducer {
                             )
                         }
                     }
+                
             case .binding(\.$model.currencyValue):
                 return .run { [model = state.model] send in
                     await send(
