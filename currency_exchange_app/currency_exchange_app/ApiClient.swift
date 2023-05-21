@@ -32,7 +32,7 @@ extension CurrencyApiClient: TestDependencyKey {
     }
     
     static let testValue = Self(
-        getCurrencyExchangeRates:  XCTUnimplemented("\(Self.self).getStoreFrontNameAsync")
+        getCurrencyExchangeRates: XCTUnimplemented("\(Self.self).getCurrencyExchangeRates")
     )
 }
 

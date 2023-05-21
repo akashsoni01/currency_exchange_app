@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "4843BBA1-D347-4CD0-A6BD-0697EDF5771A",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:currency_exchange_app.xcodeproj",
+        "identifier" : "FF31C93A2A15618200AE14DF",
+        "name" : "currency_exchange_appTests"
+      }
+    }
+  ],
+  "version" : 1
+}

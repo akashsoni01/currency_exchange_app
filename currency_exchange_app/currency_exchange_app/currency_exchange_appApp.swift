@@ -10,14 +10,16 @@ import ComposableArchitecture
 
 @main
 struct currency_exchange_appApp: App {
-    let persistenceController = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                CurrencyExchangeView(store:
-                                        Store(initialState: CurrencyExchangeFeature.State(), reducer: CurrencyExchangeFeature())
-                )
+            if !_XCTIsTesting {
+                NavigationView {
+                    CurrencyExchangeView(store:
+                                            Store(initialState: CurrencyExchangeFeature.State(model: CurrencyExchange(selectedCurrency: "USD")), reducer: CurrencyExchangeFeature())
+                    )
+                }
+    //            ItemView(item: ItemModel(title: "USD", rate: 1.5))
             }
         }
     }

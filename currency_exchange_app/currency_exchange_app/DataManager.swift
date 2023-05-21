@@ -9,7 +9,7 @@ import Dependencies
 import Foundation
 
 public struct DataManager: Sendable {
-    public var load: @Sendable (URL) async throws -> Data
+    public var load: @Sendable (URL) throws -> Data
     public var save: @Sendable (Data, URL) async throws -> Void
 }
 
