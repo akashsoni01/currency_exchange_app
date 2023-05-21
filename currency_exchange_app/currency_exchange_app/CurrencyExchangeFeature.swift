@@ -59,13 +59,16 @@ struct CurrencyExchangeFeature: Reducer {
                     state.model = model
                     state.model.lastFetchedTime = self.now
                     state.model.oldSelectedCurrency = state.model.selectedCurrency
-                    var array = IdentifiedArrayOf<ItemModel>()
-                    let keys = model.rates?.keys.sorted() ?? []
-                    keys.forEach { (key) in
-                        let total = (model.rates?[key] ?? 1.0) * state.model.currencyValue
-                        array.append(ItemModel(title: key, rate: total))
+                    if let keys = model.rates?.keys.sorted() {
+                        var array = IdentifiedArrayOf<ItemModel>()
+                        keys.forEach { (key) in
+                            if let value = model.rates?[key] {
+                                let total = value * state.model.currencyValue
+                                array.append(ItemModel(title: key, rate: total))
+                            }
+                        }
+                        state.items = array
                     }
-                    state.items = array
                     
                     return .run { [model = state.model] _ in
                       try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
@@ -85,7 +88,6 @@ struct CurrencyExchangeFeature: Reducer {
                 }
 
             case .fetchCurrencies:
-//                let selectedCurrency = state.model.selectedCurrency
                 if let lastFetchedTime = state.model.lastFetchedTime {
                         let startDate = lastFetchedTime // if you want to call according to api last fetched
                         let endDate = self.now
@@ -98,9 +100,9 @@ struct CurrencyExchangeFeature: Reducer {
                                 ))
                             }
                         } else {
-                            // if api didn't call from last __ minutes then call api again
+                            // if api didn't call from last 60 minutes then call api again with USD and change base currency
                             state.model.selectedCurrency = "USD"
-                            return .run { send in
+                            return .run { [oldKey = state.model.oldSelectedCurrency] send in
                                 await send(
                                     .receiveCurrency(
                                         TaskResult {
@@ -109,6 +111,9 @@ struct CurrencyExchangeFeature: Reducer {
                                     )
                                 )
                                 
+                                await send(
+                                    .currencyBaseChanged(oldKey)
+                                )
                             }
                         }
                     } else {
@@ -143,11 +148,6 @@ struct CurrencyExchangeFeature: Reducer {
                 
                 
             case let .currencyBaseChanged(newKey):
-                defer {
-                    state.model.base = newKey
-                    state.model.selectedCurrency = newKey
-                }
-                
                 if newKey == state.model.oldSelectedCurrency {
                     return .none
                 } else {
@@ -191,6 +191,8 @@ struct CurrencyExchangeFeature: Reducer {
                         }
                     }
                 }
+                model.selectedCurrency = newKey
+                model.base = newKey
 
                 return model
             }

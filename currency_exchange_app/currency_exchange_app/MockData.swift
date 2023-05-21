@@ -31,11 +31,11 @@ let mockRates = [
 
 let mockRatesBaseAED = [
     "AED": 1.0000,
-    "AFN": 1.0000,
-    "ALL": 1.0000,
-    "AMD": 1.0000,
-    "ANG": 1.0000,
-    "USD": 1.0000
+    "AFN": 23.964651048793936,
+    "ALL": 27.85890811053696,
+    "AMD": 105.202099630318,
+    "ANG": 0.49066971671330245,
+    "USD": 0.27232559247836713
     ]
 
 func mockIdntifiedArray(_ mockData: [String : Double], value: Double = 1.0
