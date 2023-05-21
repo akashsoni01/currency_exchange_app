@@ -59,14 +59,14 @@ struct CurrencyExchangeFeature: Reducer {
                     state.model = model
                     state.model.lastFetchedTime = self.now
                     state.model.oldSelectedCurrency = state.model.selectedCurrency
-                    var array = [ItemModel]()
-                    model.rates?.forEach { (key, value) in
-                        let total = value * state.model.currencyValue
+                    var array = IdentifiedArrayOf<ItemModel>()
+                    let keys = model.rates?.keys.sorted() ?? []
+                    keys.forEach { (key) in
+                        let total = (model.rates?[key] ?? 1.0) * state.model.currencyValue
                         array.append(ItemModel(title: key, rate: total))
                     }
-                    array.sort{ $0.title < $1.title }
+                    state.items = array
                     
-                    state.items = IdentifiedArrayOf(uniqueElements: array)
                     return .run { [model = state.model] _ in
                       try await withTaskCancellation(id: CancelID.saveDebounce, cancelInFlight: true) {
                         try await self.clock.sleep(for: .seconds(1))
