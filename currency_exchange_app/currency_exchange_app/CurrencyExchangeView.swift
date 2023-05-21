@@ -19,29 +19,33 @@ struct CurrencyExchangeView: View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             VStack {
                 List {
-                        TextField("Enter a value", value: viewStore.binding(\.$model.currencyValue), format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-
                         if let rates = viewStore.model.rates,
                            rates.count > 0,
                            viewStore.model.selectedCurrency.count > 0 {
+                            TextField("Enter a value", value: viewStore.binding(\.$model.currencyValue), format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+
                             CurrencyPickerView(
                                 selectedKey: viewStore.binding(\.$model.selectedCurrency),
                                 keyValues: viewStore.model.rates ?? [:]
                             )
-                        }
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.adaptive(minimum: 120)),
-                        ], spacing: 20) {
-                            ForEach(viewStore.items, id: \.id) { item in
-                                ItemView(item: item)
-                                    .frame(minHeight: 50)
+                            
+                            ScrollView {
+                                LazyVGrid(columns: [
+                                    GridItem(.adaptive(minimum: 120)),
+                                ], spacing: 20) {
+                                    ForEach(viewStore.items, id: \.id) { item in
+                                        ItemView(item: item)
+                                            .frame(minHeight: 50)
+                                    }
+                                }
                             }
+
+                        } else {
+                            Text("No Internet Connection.")
                         }
-                    }
                 }
                 .refreshable {
                     viewStore.send(.refresh)
