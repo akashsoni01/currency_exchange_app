@@ -93,7 +93,7 @@ struct CurrencyExchangeFeature: Reducer {
                         let endDate = self.now
                         let components = self.calendar.dateComponents([.minute], from: startDate, to: endDate)
                         let distenceInMin = components.minute ?? 0
-                        if distenceInMin <= 60 {
+                        if distenceInMin < 60 {
                             return .run { [model = state.model] send in
                                 await send(.receiveCurrency(
                                     TaskResult { model }
@@ -102,21 +102,19 @@ struct CurrencyExchangeFeature: Reducer {
                         } else {
                             // if api didn't call from last 60 minutes then call api again with USD and change base currency
                             state.model.selectedCurrency = "USD"
-                            return .run { [oldKey = state.model.oldSelectedCurrency] send in
+                            return .run { [previouslySelectedCurrency = state.model.oldSelectedCurrency] send in
                                 await send(
                                     .receiveCurrency(
                                         TaskResult {
-                                            try await self.currencyApiClient.getCurrencyExchangeRates("USD")
+                                            changeOldBaseWithNew(model: try await self.currencyApiClient.getCurrencyExchangeRates("USD"), oldKey: "USD", newKey: previouslySelectedCurrency)
+                                            
                                         }
                                     )
-                                )
-                                
-                                await send(
-                                    .currencyBaseChanged(oldKey)
                                 )
                             }
                         }
                     } else {
+                        // First time fetch api 
                         state.model.selectedCurrency = "USD"
                         return .run { send in
                             await send(

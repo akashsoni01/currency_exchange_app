@@ -170,11 +170,18 @@ final class currency_exchange_appTests: XCTestCase {
     }
     
     func test_fetchCurrencies_fromApiAfter60Minutes() async {
+        // Create a starting date
+        let startingDate = Date(timeIntervalSince1970: 1_234_567_890) // Use the current date and time as an example
+
+        // Add 60 minutes to the starting date
+        let calendar = Calendar.current
+        let endingDate = calendar.date(byAdding: .minute, value: 60, to: startingDate)!
+
         let currencyExchange = CurrencyExchange(
             disclaimer: "disclaimer",
             license: "license",
             timestamp: 0,
-            lastFetchedTime: Date(timeIntervalSince1970: 1_234_567_890),
+            lastFetchedTime: startingDate,
             selectedCurrency: "USD",
             oldSelectedCurrency: "USD",
             rates: mockRates
@@ -189,7 +196,7 @@ final class currency_exchange_appTests: XCTestCase {
             CurrencyExchangeFeature()
         } withDependencies: {
             $0.uuid = .incrementing
-            $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
+            $0.date.now = endingDate
             $0.continuousClock = testClock
             $0.currencyApiClient = .default()
             $0.currencyApiClient.getCurrencyExchangeRates = { _ in currencyExchange }
@@ -198,14 +205,107 @@ final class currency_exchange_appTests: XCTestCase {
               )
             $0.calendar = .current
         }
+
+        
         
         await testStore.send(.fetchCurrencies)
-        
-        await testStore.receive(.receiveCurrency(.success(currencyExchange))) {
+        let expected = CurrencyExchange(
+            disclaimer: "disclaimer",
+            license: "license",
+            base: "USD",
+            timestamp: 0,
+            lastFetchedTime: startingDate,
+            currencyValue: 1.0,
+            currencyExchangeValue: 1.0,
+            selectedCurrency: "USD",
+            oldSelectedCurrency: "USD",
+            rates: [
+              "AED": 3.672075,
+              "AFN": 87.999996,
+              "ALL": 102.3,
+              "AMD": 386.31,
+              "ANG": 1.801776,
+              "USD": 1.0
+            ]
+          )
+        await testStore.receive(.receiveCurrency(.success(expected))) {
             $0.model = currencyExchange
-            $0.model.lastFetchedTime = Date(timeIntervalSince1970: 1_234_567_890)
+            $0.model.lastFetchedTime = endingDate
+            $0.model.base = "USD"
             $0.model.oldSelectedCurrency = "USD"
             $0.items = mockIdntifiedArray(mockRates)
+        }
+        await testClock.advance(by: .seconds(1))
+
+    }
+    
+    func test_fetchCurrencies_fromApiAfter60Minutes_retrieveToOldCurrencyBase() async {
+        // Create a starting date
+        let startingDate = Date(timeIntervalSince1970: 1_234_567_890) // Use the current date and time as an example
+
+        // Add 60 minutes to the starting date
+        let calendar = Calendar.current
+        let endingDate = calendar.date(byAdding: .minute, value: 60, to: startingDate)!
+
+        let currencyExchange = CurrencyExchange(
+            disclaimer: "disclaimer",
+            license: "license",
+            timestamp: 0,
+            lastFetchedTime: startingDate,
+            selectedCurrency: "AED",
+            oldSelectedCurrency: "AED",
+            rates: mockRatesBaseAED
+        )
+
+        let testClock = TestClock()
+
+        let testStore = TestStore(
+            initialState: CurrencyExchangeFeature.State(
+                model: currencyExchange)
+        ) {
+            CurrencyExchangeFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
+            $0.date.now = endingDate
+            $0.continuousClock = testClock
+            $0.currencyApiClient = .default()
+            $0.currencyApiClient.getCurrencyExchangeRates = { _ in currencyExchange }
+            $0.dataManager = .mock(
+                initialData: try! JSONEncoder().encode(currencyExchange)
+              )
+            $0.calendar = .current
+        }
+
+        
+        
+        await testStore.send(.fetchCurrencies) {
+            $0.model.selectedCurrency = "USD"
+        }
+        let expected = CurrencyExchange(
+            disclaimer: "disclaimer",
+            license: "license",
+            base: "AED",
+            timestamp: 0,
+            lastFetchedTime: startingDate,
+            currencyValue: 1.0,
+            currencyExchangeValue: 1.0,
+            selectedCurrency: "AED",
+            oldSelectedCurrency: "AED",
+            rates: [
+              "AED": 1.0,
+              "AFN": 23.964651048793936,
+              "ALL": 27.85890811053696,
+              "AMD": 105.202099630318,
+              "ANG": 0.49066971671330245,
+              "USD": 0.27232559247836713
+            ]
+          )
+        await testStore.receive(.receiveCurrency(.success(expected))) {
+            $0.model = expected
+            $0.model.lastFetchedTime = endingDate
+            $0.model.base = "AED"
+            $0.model.oldSelectedCurrency = "AED"
+            $0.items = mockIdntifiedArray(mockRatesBaseAED)
         }
         await testClock.advance(by: .seconds(1))
 
