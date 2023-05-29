@@ -171,6 +171,39 @@ final class currency_exchange_appTests: XCTestCase {
 
     }
     
+    func test_refreshTime_changed() async {
+        let currencyExchange = CurrencyExchange(
+            disclaimer: "disclaimer",
+            license: "license",
+            base: "USD",
+            timestamp: 0,
+            lastFetchedTime: Date(timeIntervalSince1970: 1_234_567_890),
+            selectedCurrency: "USD",
+            oldSelectedCurrency: "USD",
+            rates: mockRates
+        )
+        
+        let testClock = TestClock()
+        let testStore = TestStore(
+            initialState: CurrencyExchangeFeature.State(
+                model: currencyExchange)
+        ) {
+            CurrencyExchangeFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
+            $0.date.now = Date(timeIntervalSince1970: 1_234_567_890)
+            $0.continuousClock = testClock
+            $0.currencyApiClient = .default()
+            $0.currencyApiClient.getCurrencyExchangeRates = { _ in currencyExchange }
+            $0.dataManager = .mock(
+                initialData: try! JSONEncoder().encode(currencyExchange)
+              )
+            $0.calendar = .current
+        }
+        XCTAssertTrue(testStore.state.refreshTime == 60)
+
+    }
+    
     func test_fetchCurrencies_fromApiAfter60Minutes() async {
         // Create a starting date
         let startingDate = Date(timeIntervalSince1970: 1_234_567_890) // Use the current date and time as an example

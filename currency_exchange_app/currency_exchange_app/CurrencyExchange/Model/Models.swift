@@ -32,17 +32,15 @@ struct CurrencyExchange: Codable, Equatable {
     let license: String?
     var base: String?
     let timestamp: Int
+    var rates: [String: Double]?
+    
     var lastFetchedTime: Date?
     var currencyValue = 1.0
     var currencyExchangeValue = 1.0
     var selectedCurrency: String = "USD"
     var oldSelectedCurrency: String = "USD"
-
-    var rates: [String: Double]?
-    var sortedKeys: [String] {
-        rates?.keys.sorted() ?? []
-    }
-
+    var sortedKeys: [String] { rates?.keys.sorted() ?? [] }
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.disclaimer = try container.decodeIfPresent(String.self, forKey: .disclaimer)

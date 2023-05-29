@@ -13,10 +13,9 @@ struct CurrencyExchangeFeature: Reducer {
         var items: IdentifiedArrayOf<ItemModel> = []
         @BindingState var model: CurrencyExchange
         var shouldShowView: Bool { return (self.model.rates?.count ?? 0) > 0 && self.model.selectedCurrency.count > 0 }
-
-        init(
-            model: CurrencyExchange
-        ) {
+        let refreshTime = 60
+        
+        init(model: CurrencyExchange) {
             do {
                 @Dependency(\.dataManager.load) var load
                 self.model = try JSONDecoder().decode(CurrencyExchange.self, from: load(.currencyLocalStorageUrl))
@@ -93,14 +92,14 @@ struct CurrencyExchangeFeature: Reducer {
                         let endDate = self.now
                         let components = self.calendar.dateComponents([.minute], from: startDate, to: endDate)
                         let distenceInMin = components.minute ?? 0
-                        if distenceInMin < 60 {
+                    if distenceInMin < state.refreshTime {
                             return .run { [model = state.model] send in
                                 await send(.receiveCurrency(
                                     TaskResult { model }
                                 ))
                             }
                         } else {
-                            // if api didn't call from last 60 minutes then call api again with USD and change base currency
+                            // if api didn't call from last refreshTime minutes then call api again with USD and change base currency
                             state.model.selectedCurrency = "USD"
                             return .run { [previouslySelectedCurrency = state.model.oldSelectedCurrency] send in
                                 await send(
