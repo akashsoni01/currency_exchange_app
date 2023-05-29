@@ -19,9 +19,7 @@ struct CurrencyExchangeView: View {
         WithViewStore(self.store, observe: { $0 }) { viewStore in
             VStack {
                 List {
-                        if let rates = viewStore.model.rates,
-                           rates.count > 0,
-                           viewStore.model.selectedCurrency.count > 0 {
+                        if viewStore.shouldShowView {
                             TextField("Enter a value", value: viewStore.binding(\.$model.currencyValue), format: .number)
                                 .textFieldStyle(.roundedBorder)
                                 .keyboardType(.decimalPad)

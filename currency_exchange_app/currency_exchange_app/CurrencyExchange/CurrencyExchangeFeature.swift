@@ -12,6 +12,7 @@ struct CurrencyExchangeFeature: Reducer {
     struct State: Equatable {
         var items: IdentifiedArrayOf<ItemModel> = []
         @BindingState var model: CurrencyExchange
+        var shouldShowView: Bool { return (self.model.rates?.count ?? 0) > 0 && self.model.selectedCurrency.count > 0 }
 
         init(
             model: CurrencyExchange
